@@ -25,6 +25,7 @@ import datetime  # Chronometer
 import os  # Files management
 import tensorflow as tf
 import numpy as np
+import math
 
 from tqdm import tqdm  # Progress bar
 
@@ -161,12 +162,11 @@ class Chatbot:
             self.model = Model(self.args, self.textData)
 
         # Saver/summaries
+        self.writer = tf.train.SummaryWriter(self._getSummaryName())
         if '12' in tf.__version__:  # HACK: Solve new tf Saver V2 format
-            self.writer = tf.summary.FileWriter(self._getSummaryName())
-            self.saver = tf.train.Saver(max_to_keep=200, write_version=1)  # TODO: See GitHub for format name issue (when restoring the model)
+            self.saver = tf.train.Saver(max_to_keep=200, write_version=1)  # Arbitrary limit ?
         else:
-            self.writer = tf.train.SummaryWriter(self._getSummaryName())
-            self.saver = tf.train.Saver(max_to_keep=200)  # Arbitrary limit ?
+            self.saver = tf.train.Saver(max_to_keep=200)
 
         # TODO: Fixed seed (WARNING: If dataset shuffling, make sure to do that after saving the
         # dataset, otherwise, all which cames after the shuffling won't be replicable when
@@ -180,7 +180,7 @@ class Chatbot:
         )  # TODO: Replace all sess by self.sess (not necessary a good idea) ?
 
         print('Initialize variables...')
-        self.sess.run(tf.global_variables_initializer())
+        self.sess.run(tf.initialize_all_variables())
 
         # Reload the model eventually (if it exist.), on testing mode, the models are not loaded here (but in predictTestset)
         if self.args.test != Chatbot.TestMode.ALL:
@@ -219,7 +219,7 @@ class Chatbot:
 
         self.textData.makeLighter(self.args.ratioDataset)  # Limit the number of training samples
 
-        mergedSummaries = tf.summary.merge_all()  # Define the summary operator (Warning: Won't appear on the tensorboard graph)
+        mergedSummaries = tf.merge_all_summaries()  # Define the summary operator (Warning: Won't appear on the tensorboard graph)
         if self.globStep == 0:  # Not restoring from previous run
             self.writer.add_graph(sess.graph)  # First time only
 
@@ -245,6 +245,11 @@ class Chatbot:
                     _, loss, summary = sess.run(ops + (mergedSummaries,), feedDict)
                     self.writer.add_summary(summary, self.globStep)
                     self.globStep += 1
+
+                    # Output training status
+                    if self.globStep % 100 == 0:
+                        perplexity = math.exp(float(loss)) if loss < 300 else float("inf")
+                        tqdm.write("----- Step %d -- Loss %.2f -- Perplexity %.2f" % (self.globStep, loss, perplexity))
 
                     # Checkpoint
                     if self.globStep % self.args.saveEvery == 0:
