@@ -24,7 +24,6 @@ import pickle  # Saving the data
 import math  # For float comparison
 import os  # Checking file existance
 import random
-import string
 
 from chatbot.cornelldata import CornellData
 from chatbot.opensubsdata import OpensubsData
@@ -396,16 +395,7 @@ class TextData:
         if reverse:  # Reverse means input so no <eos> (otherwise pb with previous early stop)
             sentence.reverse()
 
-        return self.detokenize(sentence)
-
-    def detokenize(self, tokens):
-        """Slightly cleaner version of joining with spaces.
-        Args:
-            tokens (list<string>): the sentence to print
-        Return:
-            str: the sentence
-        """
-        return "".join([" "+i if not i.startswith("'") and i not in string.punctuation else i for i in tokens]).strip()
+        return ' '.join(sentence)
 
     def batchSeq2str(self, batchSeq, seqId=0, **kwargs):
         """Convert a list of integer into a human readable string.
