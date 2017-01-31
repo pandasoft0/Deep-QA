@@ -28,6 +28,7 @@ import numpy as np
 import math
 
 from tqdm import tqdm  # Progress bar
+from tensorflow.python import debug as tf_debug
 
 from chatbot.textdata import TextData
 from chatbot.model import Model
@@ -97,6 +98,7 @@ class Chatbot:
         globalArgs.add_argument('--playDataset', type=int, nargs='?', const=10, default=None,  help='if set, the program  will randomly play some samples(can be use conjointly with createDataset if this is the only action you want to perform)')
         globalArgs.add_argument('--reset', action='store_true', help='use this if you want to ignore the previous model present on the model directory (Warning: the model will be destroyed with all the folder content)')
         globalArgs.add_argument('--verbose', action='store_true', help='When testing, will plot the outputs at the same time they are computed')
+        globalArgs.add_argument('--debug', action='store_true', help='run DeepQA with Tensorflow debug mode. Read TF documentation for more details on this.')
         globalArgs.add_argument('--keepAll', action='store_true', help='If this option is set, all saved model will be kept (Warning: make sure you have enough free disk space or increase saveEvery)')  # TODO: Add an option to delimit the max size
         globalArgs.add_argument('--modelTag', type=str, default=None, help='tag to differentiate which model to store/load')
         globalArgs.add_argument('--rootDir', type=str, default=None, help='folder where to look for the models and data')
@@ -107,7 +109,7 @@ class Chatbot:
 
         # Dataset options
         datasetArgs = parser.add_argument_group('Dataset options')
-        datasetArgs.add_argument('--corpus', choices=['cornell', 'opensubs', 'scotus'], default='cornell', help='corpus on which extract the dataset.')  # TODO: Replace by cst registered in textdata
+        datasetArgs.add_argument('--corpus', choices=['cornell', 'opensubs'], default='cornell', help='corpus on which extract the dataset. Only two corpus available right now (cornell and opensubs)')  # TODO: Replace by cst registered in textdata
         datasetArgs.add_argument('--datasetTag', type=str, default=None, help='add a tag to the dataset (file where to load the vocabulary and the precomputed samples, not the original corpus). Useful to manage multiple versions')  # The samples are computed from the corpus if it does not exist already. There are saved in \'data/samples/\'
         datasetArgs.add_argument('--ratioDataset', type=float, default=1.0, help='ratio of dataset used to avoid using the whole dataset')  # Not implemented, useless ?
         datasetArgs.add_argument('--maxLength', type=int, default=10, help='maximum length of the sentence (for input and output), define number of maximum step of the RNN')
@@ -179,6 +181,10 @@ class Chatbot:
             allow_soft_placement=True,  # Allows backup device for non GPU-available operations (when forcing GPU)
             log_device_placement=False)  # Too verbose ?
         )  # TODO: Replace all sess by self.sess (not necessary a good idea) ?
+
+        if self.args.debug:
+            self.sess = tf_debug.LocalCLIDebugWrapperSession(self.sess)
+            self.sess.add_tensor_filter("has_inf_or_nan", tf_debug.has_inf_or_nan)
 
         print('Initialize variables...')
         self.sess.run(tf.initialize_all_variables())
