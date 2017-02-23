@@ -17,31 +17,36 @@ This work tries to reproduce the results of [A Neural Conversational Model](http
 
 The loading corpus part of the program is inspired by the Torch [neuralconvo](https://github.com/macournoyer/neuralconvo) from [macournoyer](https://github.com/macournoyer).
 
-By default, it uses the [Cornell Movie Dialogs](http://www.cs.cornell.edu/~cristian/Cornell_Movie-Dialogs_Corpus.html) corpus. If you want to train it on a bigger (but noisier) dataset, [OpenSubtitles](http://opus.lingfil.uu.se/OpenSubtitles.php) is also available (thanks to [Eschnou](https://github.com/eschnou)). To use it, follow [those instructions](data/opensubs/) and use the flag `--corpus opensubs`.
+For now, DeepQA support the following dialog corpus:
+ * [Cornell Movie Dialogs](http://www.cs.cornell.edu/~cristian/Cornell_Movie-Dialogs_Corpus.html) corpus (default). Already included when cloning the repository.
+ * [OpenSubtitles](http://opus.lingfil.uu.se/OpenSubtitles.php) (thanks to [Eschnou](https://github.com/eschnou)). Much bigger corpus (but also noisier). To use it, follow [those instructions](data/opensubs/) and use the flag `--corpus opensubs`.
+ * Supreme Court Conversation Data (thanks to [julien-c](https://github.com/julien-c)). Available using `--corpus scotus`. See the [instructions](data/scotus/) for installation.
+ * [Ubuntu Dialogue Corpus](https://arxiv.org/abs/1506.08909) (thanks to [julien-c](https://github.com/julien-c)). Available using `--corpus ubuntu`. See the [instructions](data/ubuntu/) for installation.
+ * Your own data (thanks to [julien-c](https://github.com/julien-c)) by using a simple custom conversation format (See [here](data/lightweight) for more info).
 
 ## Installation
 
 The program requires the following dependencies (easy to install using pip):
  * python 3.5
- * tensorflow (tested with v0.11.0)
+ * tensorflow (tested with v1.0)
  * numpy
- * CUDA (for using gpu, see TensorFlow [installation page](https://www.tensorflow.org/versions/master/get_started/os_setup.html#optional-install-cuda-gpus-on-linux) for more details)
+ * CUDA (for using GPU)
  * nltk (natural language toolkit for tokenized the sentences)
  * tqdm (for the nice progression bars)
 
-With you might also need to download additional data to make nltk work.
+You might also need to download additional data to make nltk work.
 
 ```
 python3 -m nltk.downloader punkt
 ```
 
-The Cornell dataset is already included.
+The Cornell dataset is already included. For the other datasets, look at the readme files into their respective folders (inside `data/`).
 
 The web interface requires some additional packages:
  * django (tested with 1.10)
  * channels
  * Redis (see [here](http://redis.io/topics/quickstart))
- * asgi_redis
+ * asgi_redis (at least 1.0)
 
 A Docker installation is also available. More detailed instructions [here](docker/README.md).
 
@@ -53,11 +58,11 @@ To train the model, simply run `main.py`. Once trained, you can test the results
 
 Here are some flags which could be useful. For more help and options, use `python main.py -h`:
  * `--modelTag <name>`: allow to give a name to the current model to differentiate between them when testing/training.
- * `--keelAll`: use this flag when training if when testing, you want to see the predictions at different steps (it can be interesting to see the program changes its name and age as the training progress). Warning: It can quickly take a lot of storage space if you don't increase the `--saveEvey` option.
+ * `--keepAll`: use this flag when training if when testing, you want to see the predictions at different steps (it can be interesting to see the program changes its name and age as the training progress). Warning: It can quickly take a lot of storage space if you don't increase the `--saveEvery` option.
  * `--verbose`: when testing, will print the sentences as they are computed.
  * `--playDataset`: show some dialogue samples from the dataset (can be use conjointly with `--createDataset` if this is the only action you want to perform).
 
-To visualize the computational graph and the cost with [TensorBoard](https://www.tensorflow.org/versions/r0.11/how_tos/summaries_and_tensorboard/index.html), just run `tensorboard --logdir save/`.
+To visualize the computational graph and the cost with [TensorBoard](https://www.tensorflow.org/how_tos/summaries_and_tensorboard/), just run `tensorboard --logdir save/`.
 
 By default, the network architecture is a standard encoder/decoder with two LSTM layers (hidden size of 256) and an embedding size for the vocabulary of 32. The network is trained using ADAM. The maximum sentence length is set to 10 words, but can be increased.
 
@@ -66,7 +71,7 @@ By default, the network architecture is a standard encoder/decoder with two LSTM
 Once trained, it's possible to chat with it using a more user friendly interface. The server will look at the model present on `save/model-server/model.ckpt`. The first time you want to use it, you'll need to configure it with:
 
 ```bash
-export CHATBOT_SECRET_KEY "my-secret-key"
+export CHATBOT_SECRET_KEY="my-secret-key"
 cd chatbot_website/
 python manage.py makemigrations
 python manage.py migrate
@@ -76,7 +81,7 @@ Then, to launch the server locally, use the following commands:
 
 ```bash
 cd chatbot_website/
-redis-server &
+redis-server &  # Launch Redis in background
 python manage.py runserver
 ```
 
@@ -195,7 +200,7 @@ It also seems to overfit as sometimes it will just pop out sentences from its tr
     Q: What color is the sky ?
     A: One of the deputies is everywhere.
 
-You can find a pre-trained model [here](https://drive.google.com/file/d/0Bw-phsNSkq23amlSZXVqcm5oVFU/view?usp=sharing). Don't expect spectacular results though. If you have a high-end GPU, you could try to increase the network parameters and train a better model.
+You can find an old pre-trained model [here](https://drive.google.com/file/d/0Bw-phsNSkq23amlSZXVqcm5oVFU/view?usp=sharing) (Won't work with the current version). Don't expect spectacular results though. If you have a high-end GPU, you could try to increase the network parameters and train a better model.
 
 ## Improvements
 
