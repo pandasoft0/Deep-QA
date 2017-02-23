@@ -1,3 +1,4 @@
+# TODO: CHECK WHY INITBOT IS PLOTED TWICE !!! ?
 # TODO: Make docker display chatbot module output (+ logs)
 version: '2'
 services:
