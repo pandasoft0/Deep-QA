@@ -235,21 +235,20 @@ class TextData:
         if not datasetExist:  # First time we load the database: creating all files
             print('Training samples not found. Creating dataset...')
 
-            optionnal = ''
+            optional = ''
             if self.args.corpus == 'lightweight' and not self.args.datasetTag:
                 raise ValueError('Use the --datasetTag to define the lightweight file to use.')
             else:
-                optionnal = '/' + self.args.datasetTag  # HACK: Forward the filename
+                optional = '/' + self.args.datasetTag  # HACK: Forward the filename
 
             # Corpus creation
-            corpusData = TextData.availableCorpus[self.args.corpus](self.corpusDir + optionnal)
+            corpusData = TextData.availableCorpus[self.args.corpus](self.corpusDir + optional)
             self.createCorpus(corpusData.getConversations())
 
             # Saving
             print('Saving dataset...')
             self.saveDataset(dirName)  # Saving tf samples
         else:
-            print('Loading dataset from {}...'.format(dirName))
             self.loadDataset(dirName)
 
         assert self.padToken == 0
@@ -273,7 +272,9 @@ class TextData:
         Args:
             dirName (str): The directory where to load the model
         """
-        with open(os.path.join(dirName, self.samplesName), 'rb') as handle:
+        dataset_path = os.path.join(dirName, self.samplesName)
+        print('Loading dataset from {}'.format(dataset_path))
+        with open(dataset_path, 'rb') as handle:
             data = pickle.load(handle)  # Warning: If adding something here, also modifying saveDataset
             self.word2id = data['word2id']
             self.id2word = data['id2word']
