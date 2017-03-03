@@ -14,7 +14,6 @@
 # ==============================================================================
 
 import os
-import ast
 
 """
 Load the cornell movie dialog corpus.
@@ -88,7 +87,7 @@ class CornellData:
                     convObj[field] = values[i]
 
                 # Convert string to list (convObj["utteranceIDs"] == "['L598485', 'L598486', ...]")
-                lineIds = ast.literal_eval(convObj["utteranceIDs"])
+                lineIds = eval(convObj["utteranceIDs"])
 
                 # Reassemble lines
                 convObj["lines"] = []

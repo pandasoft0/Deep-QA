@@ -139,20 +139,10 @@ class Model:
                     self.dtype)
 
         # Creation of the rnn cell
-        def create_rnn_cell():
-            encoDecoCell = tf.contrib.rnn.BasicLSTMCell(  # Or GRUCell, LSTMCell(args.hiddenSize)
-                self.args.hiddenSize,
-            )
-            if not self.args.test:  # TODO: Should use a placeholder instead
-                encoDecoCell = tf.contrib.rnn.DropoutWrapper(
-                    encoDecoCell,
-                    input_keep_prob=1.0,
-                    output_keep_prob=self.args.dropout
-                )
-            return encoDecoCell
-        encoDecoCell = tf.contrib.rnn.MultiRNNCell(
-            [create_rnn_cell() for _ in range(self.args.numLayers)],
-        )
+        encoDecoCell = tf.contrib.rnn.BasicLSTMCell(self.args.hiddenSize, state_is_tuple=True)  # Or GRUCell, LSTMCell(args.hiddenSize)
+        if not self.args.test:  # TODO: Should use a placeholder instead
+            encoDecoCell = tf.contrib.rnn.DropoutWrapper(encoDecoCell, input_keep_prob=1.0, output_keep_prob=self.args.dropout)
+        encoDecoCell = tf.contrib.rnn.MultiRNNCell([encoDecoCell] * self.args.numLayers, state_is_tuple=True)
 
         # Network input (placeholders)
 
