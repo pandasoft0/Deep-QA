@@ -235,14 +235,14 @@ class TextData:
         if not datasetExist:  # First time we load the database: creating all files
             print('Training samples not found. Creating dataset...')
 
-            optional = ''
+            optionnal = ''
             if self.args.corpus == 'lightweight' and not self.args.datasetTag:
                 raise ValueError('Use the --datasetTag to define the lightweight file to use.')
             else:
-                optional = '/' + self.args.datasetTag  # HACK: Forward the filename
+                optionnal = '/' + self.args.datasetTag  # HACK: Forward the filename
 
             # Corpus creation
-            corpusData = TextData.availableCorpus[self.args.corpus](self.corpusDir + optional)
+            corpusData = TextData.availableCorpus[self.args.corpus](self.corpusDir + optionnal)
             self.createCorpus(corpusData.getConversations())
 
             # Saving
