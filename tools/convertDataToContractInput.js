@@ -59,4 +59,12 @@ Array.prototype.unique = function() {
 	return a;
 };
 
+if (
+	responseCard.data.hasOwnProperty('data') &&
+	responseCard.data.data.hasOwnProperty('tokens') &&
+	responseCard.data.data.tokens.length
+) {
+	cards = responseCard.data.data.tokens;
+}
+
 convert();
